@@ -62,10 +62,6 @@
       <Project>{DEC45000-ED7F-4077-B5CB-FD5C444F0DF3}</Project>
       <Name>Demo.Client.Entities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Demo.Common\Demo.Common.csproj">
-      <Project>{A949A4F8-55D3-4E99-9530-B732D23026BF}</Project>
-      <Name>Demo.Common</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Data Contracts\" />

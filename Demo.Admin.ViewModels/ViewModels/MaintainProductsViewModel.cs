@@ -24,9 +24,6 @@ namespace Demo.Admin.ViewModels
         private ObservableCollection<Product> _products;
         private EditProductDialogViewModel _editProductDialog;
         private Product _selectedProduct;
-        private bool _isServiceOnline;
-        private EndpointAddress _discoveredAddress;
-        private ServiceHost _announcementService;
 
         #endregion
 
@@ -65,17 +62,6 @@ namespace Demo.Admin.ViewModels
             }
         }
 
-        public bool IsServiceOnline
-        {
-            get { return this._isServiceOnline; }
-            set
-            {
-                if (this._isServiceOnline == value) return;
-                this._isServiceOnline = value;
-                OnPropertyChanged(() => this.IsServiceOnline);                
-            }
-        }
-
         #endregion
 
         #region Events
@@ -106,11 +92,7 @@ namespace Demo.Admin.ViewModels
         protected override void OnViewLoaded()
         {
             this._products = new ObservableCollection<Product>();
-
-            //this.LoadProductsWithDynamicallyEndpointAndAnnouncement();
-            //this.LoadProductsWithDynamicallyEndpoint();
-            //this.LoadProductsWithDiscoveringEndpointWithSettings();
-            this.LoadProductsWithHardcodedEndpoint(); // comment in for unit testing
+            this.LoadProductsWithHardcodedEndpoint();
         }
 
         #endregion
@@ -147,10 +129,10 @@ namespace Demo.Admin.ViewModels
 
         private void RegisterCommands()
         {
-            this.EditProductCommand = new DelegateCommand<Product>(OnEditProductCommand, CanExecuteEditProductCommand);
-            this.AddProductCommand = new DelegateCommand<object>(OnAddProductCommand, CanExecuteAddProductCommand);
-            this.DeactivateProductCommand = new DelegateCommand<Product>(OnDeactivateProductCommand, CanExecuteDeactivateProductCommand);
-            this.ActivateProductCommand = new DelegateCommand<Product>(OnActivateProductCommand, CanExecuteActivateProductCommand);
+            this.EditProductCommand = new DelegateCommand<Product>(OnEditProductCommand);
+            this.AddProductCommand = new DelegateCommand<object>(OnAddProductCommand);
+            this.DeactivateProductCommand = new DelegateCommand<Product>(OnDeactivateProductCommand);
+            this.ActivateProductCommand = new DelegateCommand<Product>(OnActivateProductCommand);
         }
 
         private void LoadProductsWithHardcodedEndpoint()
@@ -165,211 +147,7 @@ namespace Demo.Admin.ViewModels
                         this._products.Add(p);
                     }
                 }
-
-                this.IsServiceOnline = true;
-                this.CanExecuteAddProductCommand(null);
             });
-        }
-
-        #endregion
-
-        #region Discovering dynamically for service with announcement
-
-        private void LoadProductsWithDynamicallyEndpointAndAnnouncement()
-        {
-            this.DiscoverServices();
-            this.CreateAnnouncementService();
-
-            var proxy = this._serviceFactory.CreateClient<IInventoryService>("dynamicInventoryService");
-            if (proxy == null)
-            {
-                this.IsServiceOnline = false;
-                this.CanExecuteAddProductCommand(null);
-                return;
-            }
-
-            var products = proxy.GetProducts();
-            if (products != null && products.Length > 0)
-            {
-                foreach (var p in products)
-                {
-                    this._products.Add(p);
-                }
-            }
-
-            this.IsServiceOnline = true;
-            this.CanExecuteAddProductCommand(null);
-
-            // do housekeeping by yourself
-            ((IDisposable)proxy).Dispose();
-        }
-
-        private void CreateAnnouncementService()
-        {
-            var announcementService = new AnnouncementService();
-
-            announcementService.OnlineAnnouncementReceived += (sender, args) =>
-            {
-                if (args.EndpointDiscoveryMetadata.ContractTypeNames.FirstOrDefault(i => i.Name.Equals("IInventoryService")) == null) return;
-                this._discoveredAddress = args.EndpointDiscoveryMetadata.Address;
-                this.IsServiceOnline = true;
-
-                this.CanExecuteAddProductCommand(null);
-            };
-
-            announcementService.OfflineAnnouncementReceived += (sender, args) =>
-            {
-                if (args.EndpointDiscoveryMetadata.ContractTypeNames.FirstOrDefault(i => i.Name.Equals("IInventoryService")) == null) return;
-                this._discoveredAddress = null;
-                this.IsServiceOnline = false;
-
-                this.CanExecuteAddProductCommand(null);
-            };
-
-            this._announcementService = new ServiceHost(announcementService);
-            this._announcementService.Open();
-        }
-
-        #endregion
-
-        #region Discovering dynamically for service
-
-        /// <summary>
-        /// use it if you know everything about the service but the address
-        /// </summary>
-        private void LoadProductsWithDynamicallyEndpoint()
-        {
-            var proxy = this._serviceFactory.CreateClient<IInventoryService>("dynamicInventoryService");
-            if (proxy == null)
-            {
-                this.IsServiceOnline = false;
-                this.CanExecuteAddProductCommand(null);
-                return;
-            }
-
-            var products = proxy.GetProducts();
-            if (products != null && products.Length > 0)
-            {
-                foreach (var p in products)
-                {
-                    this._products.Add(p);
-                }
-            }
-
-            this.IsServiceOnline = true;
-            this.CanExecuteAddProductCommand(null);
-
-            // do housekeeping by yourself
-            ((IDisposable)proxy).Dispose();
-        }
-
-        #endregion
-
-        #region Discovering for service with settings
-
-        /// <summary>
-        /// use it when you don't know anything about the servce
-        /// except the contract
-        /// </summary>
-        private void LoadProductsWithDiscoveringEndpointWithSettings()
-        {
-            this.DiscoverServices();
-
-            var proxy = this.CreateInventoryProxy();
-            if (proxy == null) return;
-
-            var products = proxy.GetProducts();
-            if (products != null && products.Length > 0)
-            {
-                foreach (var p in products)
-                {
-                    this._products.Add(p);
-                }
-            }
-
-            // do housekeeping by yourself
-            ((IDisposable)proxy).Dispose();
-        }
-
-        private void DiscoverServices()
-        {
-            var discoveryProxy = new DiscoveryClient(new UdpDiscoveryEndpoint());
-
-            var findCriteria = new FindCriteria(typeof(IInventoryService))
-            {
-                MaxResults = 1,
-                Duration = new TimeSpan(0, 0, 5)
-            };
-
-            // scope => just another filter criteria
-            // if we have more then one implementation of the contract
-            findCriteria.Scopes.Add(new Uri("http://www.xxx.com/pingo/demo/discoverability"));
-
-            var findResponse = discoveryProxy.Find(findCriteria);
-
-            if (findResponse.Endpoints.Count > 0)
-            {
-                EndpointDiscoveryMetadata discoveredEndpoint = findResponse.Endpoints[0];
-                this._discoveredAddress = discoveredEndpoint.Address;
-
-                this.IsServiceOnline = true;
-            }
-            else
-            {
-                this._discoveredAddress = null;
-                this.IsServiceOnline = false;
-            }
-
-            this.CanExecuteAddProductCommand(null);
-        }
-
-        private IInventoryService CreateInventoryProxy()
-        {
-            if (this._discoveredAddress == null)
-            {
-                return null;
-            }
-
-            if (this._discoveredAddress.ToString().ToLower().StartsWith("net.tcp"))
-            {
-                var binding = new NetTcpBinding();
-
-                var factory = new ChannelFactory<IInventoryService>(binding, this._discoveredAddress);
-                var proxy = factory.CreateChannel();
-                return proxy;
-            }
-            else
-            {
-                var binding = new WSHttpBinding();
-
-                var factory = new ChannelFactory<IInventoryService>(binding, this._discoveredAddress);
-                var proxy = factory.CreateChannel();
-                return proxy;
-            }
-        }
-
-        #endregion
-
-        #region CanExecute... Command
-
-        private bool CanExecuteActivateProductCommand(Product obj)
-        {
-            return this.IsServiceOnline;
-        }
-
-        private bool CanExecuteDeactivateProductCommand(Product obj)
-        {
-            return this.IsServiceOnline;
-        }
-
-        private bool CanExecuteAddProductCommand(object obj)
-        {
-            return this.IsServiceOnline;
-        }
-
-        private bool CanExecuteEditProductCommand(Product obj)
-        {
-            return this.IsServiceOnline;
         }
 
         #endregion

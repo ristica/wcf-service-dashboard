@@ -72,10 +72,6 @@
       <Project>{0D5BC042-9858-4EC0-BA60-F1A87F69300E}</Project>
       <Name>Demo.Business.Entities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Demo.Common\Demo.Common.csproj">
-      <Project>{A949A4F8-55D3-4E99-9530-B732D23026BF}</Project>
-      <Name>Demo.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Demo.Data.Contracts\Demo.Data.Contracts.csproj">
       <Project>{9572D288-B171-4BF4-86C7-53437E33010E}</Project>
       <Name>Demo.Data.Contracts</Name>

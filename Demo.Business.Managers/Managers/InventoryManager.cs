@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.Linq;
-using System.Security.Permissions;
 using System.ServiceModel;
 using Core.Common.Contracts;
 using Core.Common.Exceptions;
@@ -10,8 +7,6 @@ using Demo.Business.Common;
 using Demo.Business.Contracts;
 using Demo.Business.Entities;
 using Demo.Data.Contracts;
-using Demo.Common;
-using Demo.Business.Managers.Monitoring;
 
 namespace Demo.Business.Managers
 {

@@ -93,9 +93,6 @@
     <Compile Include="Views\EditProductDialog.xaml.cs">
       <DependentUpon>EditProductDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\MaintainOrdersView.xaml.cs">
-      <DependentUpon>MaintainOrdersView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\MaintainProductsView.xaml.cs">
       <DependentUpon>MaintainProductsView.xaml</DependentUpon>
     </Compile>
@@ -115,10 +112,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\EditProductDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\MaintainOrdersView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -149,12 +142,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="App - Hardcoded.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="App - Discoverable.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
