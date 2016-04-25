@@ -1,3 +1,3 @@
-# wcf-soa-extensibility-part-1
+# wcf
 
 using wcf infrastructure to get service calls monitored
